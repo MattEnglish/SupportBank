@@ -23,7 +23,7 @@ namespace SupportBank
             this.narrative = narrative;
         }
 
-        public void applyTransaction()
+        public void ApplyTransaction()
         {
             to.addToAccount(amount, this);
             from.removeFromAccount(amount, this);

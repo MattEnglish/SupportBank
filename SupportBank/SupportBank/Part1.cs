@@ -11,7 +11,13 @@ namespace SupportBank
     
     public class Part1
     {
-        enum Commands {invalid,ListAll,ListName}
+        public static People supportTeam = new People();
+
+        enum Commands {
+            invalid,
+            ListAll,
+            ListName}
+
         public static void Run()
         {
             string command = "";
@@ -80,20 +86,22 @@ namespace SupportBank
             {
                 string[] a = transactions[i].Split(',');
                 decimal amount = Convert.ToDecimal(a[4]);
-                if (!People.doesPersonExist(a[1]))
+                
+                if (!supportTeam.DoesPersonExist(a[1]))
                 {
                     new Person(a[1]);
                 }
-                if (!People.doesPersonExist(a[2]))
+                if (!supportTeam.DoesPersonExist(a[2]))
                 {
                     new Person(a[2]);
                 }
-                Person from = People.GetPersonWithName(a[1]);
-                Person to = People.GetPersonWithName(a[2]);
+                Person from = supportTeam.GetPersonWithName(a[1]);
+                Person to = supportTeam.GetPersonWithName(a[2]);
                 string date = a[0];
                 string narrative = a[3];
                 Transaction transaction = new Transaction(date, amount, from, to, narrative);
-                transaction.applyTransaction();
+
+                transaction.ApplyTransaction();
             }
 
         }

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace SupportBank
 {
-    public static class People
+    public class People
     {
         public static List<Person> people = new List<Person>();
-
-        public static bool doesPersonExist(string theName)
+        public bool DoesPersonExist(string theName)
         {
-            foreach (Person p in People.people)
+            
+            foreach (Person p in People.people)//lambda expression
             {
                 if (p.name == theName)
                 {
@@ -22,9 +22,9 @@ namespace SupportBank
             return false;
         }
 
-        public static Person GetPersonWithName(string theName)
+        public Person GetPersonWithName(string theName)
         {
-            foreach (Person p in people)
+            foreach (Person p in people)//lambda
             {
                 if (p.name == theName)
                 {
