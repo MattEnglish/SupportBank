@@ -118,71 +118,9 @@ namespace SupportBank
 
     }
 
-    public class Transaction
-    {       
-        public decimal amount { get; }
-        public Person from { get; }
-        public Person to { get; }
-        public string narrative { get; }
-        public string date { get; }
+   
 
-        public Transaction(string theDate, decimal amount, Person from, Person to, string narrative)
-        {
-            this.amount = amount;
-            this.from = from;
-            this.to = to;
-            this.date = theDate;
-            this.narrative = narrative;
-        }
-
-        public void applyTransaction()
-        {
-            to.addToAccount(amount, this);
-            from.removeFromAccount(amount , this);
-        }
-
-        
-            
-    }
-
-    public class Person
-    {
-        
-        public string name { get; }
-        public decimal account { set; get; }
-        new List<Transaction> transactionHistory = new List<Transaction>();
-
-        public Person(string name)
-        {
-            this.name = name;
-            People.people.Add(this);
-        }
-
-        public decimal GetAccount()
-        {
-            return account;
-        }
-
-
-        public void addToAccount(decimal amount,Transaction transaction)
-        {
-            this.account += amount;
-            transactionHistory.Add(transaction);
-        }
-
-        public void removeFromAccount(decimal amount, Transaction transaction)
-        {
-            this.account -= amount;
-            transactionHistory.Add(transaction);
-
-        }
-
-        public List<Transaction> GetTransactionHistory()
-        {
-            return transactionHistory;
-        }
-
-    }
+    
 
     
 }
