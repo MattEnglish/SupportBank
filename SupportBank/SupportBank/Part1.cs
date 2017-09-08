@@ -8,149 +8,133 @@ using System.Text.RegularExpressions;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
+using Newtonsoft;
 
 
 namespace SupportBank
 {
+    public enum Commands
+    {
+        invalid,
+        ListAll,
+        ListName,
+        ImportFile
+    }
 
     public class Part1
     {
         private static readonly ILogger logger = LogManager.GetCurrentClassLogger();
 
-
         public static People supportTeam = new People();
         public static People corruptedPeople = new People();
-        public static List<Transaction> transactionList = new List<Transaction>();
+        
 
-        enum Commands
-        {
-            invalid,
-            ListAll,
-            ListName
-        }
+        
 
         public static void Run()
         {
-
             Run("Transactions.csv");
         }
 
         public static void Run(string filePath)
+        {
+            GenerateTransactionsFromRaw(GenerateRawTransactionsFromcsvFile(filePath));
+            getAndFollowCommand();
+        }
+
+        public static void getAndFollowCommand()
+        {
+            string command = "";
+            while (command != "exit")
+            {
+                command = Console.ReadLine().ToLower();
+                CommandExecutor.DoCommand(command, supportTeam);
+            }
+        }
+
+
+        public static void Logging()
         {
             var config = new LoggingConfiguration();
             var target = new FileTarget { FileName = @"C:\Work\Training\Logs\SupportBank.log", Layout = @"${longdate} ${level} - ${logger}: ${message}" };
             config.AddTarget("File Logger", target);
             config.LoggingRules.Add(new LoggingRule("*", LogLevel.Debug, target));
             LogManager.Configuration = config;
-
-            string command = "";
-            GenerateTransactionsFromFile(filePath);
-
-            while (command != "exit")
-            {               
-                command = Console.ReadLine().ToLower();
-                DoCommand(command);
-            }
         }
+        
+        
 
-
-        private static void DoCommand(String commandString)
-        {
-            Commands command = getCommand(commandString);
-            if (commandString == "exit")
-            {
-                return;
-            }
-            if (command == Commands.ListName)
-            {
-                foreach (Person person in supportTeam.people)
-                {
-                    if (commandString.Substring(5).ToLower() == person.name.ToLower())
-                    {
-                        PrintAllTransactions(person);
-                        return;
-                    }
-                }
-                Console.WriteLine("invalid name");
-                return;
-            }
-            else if (command == Commands.ListAll)
-            {
-                PrintAllAccounts();
-                return;
-            }
-            Console.WriteLine("Invalid Command");
-            return;
-        }
-        private static Commands getCommand(string command)
-        {
-            command = command.ToLower();
-            if (command.Length < 5)
-            {
-                return Commands.invalid;
-            }
-
-            if (command.Substring(0, 5).ToLower() == "list ")
-            {
-                if (command.Substring(5, 3) == "all")
-                {
-                    return Commands.ListAll;
-                }
-                return Commands.ListName;
-            }
-            return Commands.invalid;
-        }
-
-
-
-        private static void GenerateTransactionsFromFile(string filePath)
+        private static List<RawTransaction> GenerateRawTransactionsFromcsvFile(string filePath)
         {
             var transactions = File.ReadAllLines(filePath);
+            var rawTransactions = new List<RawTransaction>();
             for (int i = 1; i < transactions.Length; i++)
             {
-                string[] transactionLine = transactions[i].Split(',');
+                string[] tl = transactions[i].Split(',');
+
+                rawTransactions.Add(new RawTransaction(tl[0], tl[1], tl[2], tl[3], tl[4]));
+            }
+            return rawTransactions;
+        }
+
+        public static List<Transaction> GenerateTransactionsFromRaw(List<RawTransaction> rawTransactions)
+        {
+            var transactionList = new List<Transaction>();
+            supportTeam = new People();
+            foreach (var rawTransaction in rawTransactions)
+            {
+                Person from = GetPersonWithNameAndAddToSupportTeam(rawTransaction.FromAccount);
+                Person to = GetPersonWithNameAndAddToSupportTeam(rawTransaction.ToAccount);
                 decimal amount = 0;
-                Person from = GetPersonWithNameAndAddToSupportTeam(transactionLine[1]);
-                Person to = GetPersonWithNameAndAddToSupportTeam(transactionLine[2]);
-                string date = transactionLine[0];
-                string narrative = transactionLine[3];
                 try
                 {
-                    amount = Convert.ToDecimal(transactionLine[4]);
+                    amount = Convert.ToDecimal(rawTransaction.Amount);
 
                 }
-                catch(SystemException)
+                catch (SystemException)
                 {
-                    var message = "transaction  " + transactionLine[0] + ", " + transactionLine[1] + ", " + transactionLine[2] + ", " + transactionLine[3] + ", " + transactionLine[4]
-                        + ". \n" + transactionLine[4] + " should be a number";
+                    var message = "transaction  " + rawTransaction.Date + ", " + rawTransaction.FromAccount + ", " + rawTransaction.ToAccount + ", " + rawTransaction.Narrative + ", " + rawTransaction.Amount
+                        + ". \n" + rawTransaction.Amount + " should be a number";
                     var info = LogEventInfo.Create(LogLevel.Error, "transaction amount logger", message);
                     logger.Log(info);
                     Console.Write("There is an error in the Transactions");
                     Console.WriteLine(message);
-                    Console.WriteLine("AllTransaction involving {0} and {1} have been removed", transactionLine[1], transactionLine[2]);
+                    Console.WriteLine("AllTransaction involving {0} and {1} have been removed", rawTransaction.FromAccount, rawTransaction.ToAccount);
                     corruptedPeople.people.Add(from);
                     corruptedPeople.people.Add(to);
+                    
                 }
-                transactionList.Add(new Transaction(date, amount, from, to, narrative));
+                transactionList.Add(new Transaction(rawTransaction.Date, amount, from, to, rawTransaction.Narrative));
 
             }
+
             transactionList.RemoveAll(TransactionContainsCorruptPerson);
-            foreach(Transaction t in transactionList)
+            foreach (Transaction t in transactionList)
             {
                 t.ApplyTransaction();
             }
+            return transactionList;
 
+        }
+
+    
+
+                
+
+            
             
 
 
 
-        }
+
+
+        
 
         private static bool TransactionContainsCorruptPerson(Transaction transaction)
         {
             foreach (Person person in corruptedPeople.people)
             {
-             if(transaction.from == person || transaction.to == person)
+                if (transaction.from == person || transaction.to == person)
                 {
                     return true;
                 }
@@ -170,22 +154,7 @@ namespace SupportBank
             return supportTeam.GetPersonWithName(name);
         }
 
-        public static void PrintAllAccounts()
-        {
-            foreach (Person p in supportTeam.people)
-            {
-                Console.WriteLine("{0}     \t {1}", p.name, p.GetAccount());
-            }
-        }
-
-        public static void PrintAllTransactions(Person person)
-        {
-            foreach (Transaction transaction in person.GetTransactionHistory())
-            {
-                Console.WriteLine("{0}     \t {1}", transaction.date, transaction.narrative);
-            }
-
-        }
+        
 
 
 

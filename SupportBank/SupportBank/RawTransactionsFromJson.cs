@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace SupportBank
 {
-    class Program
+    public static class RawTransactionsFromJson
     {
-        static void Main(string[] args)
-        {
-            Part1.Run();
-        }
+        
     }
 }

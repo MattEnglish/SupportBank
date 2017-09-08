@@ -23,6 +23,9 @@ namespace SupportBank
             this.narrative = narrative;
         }
 
+
+
+
         public void ApplyTransaction()
         {
             to.addToAccount(amount, this);
