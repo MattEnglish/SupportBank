@@ -16,7 +16,6 @@ namespace SupportBank
         public Person(string name)
         {
             this.name = name;
-            People.people.Add(this);
         }
 
         public decimal GetAccount()

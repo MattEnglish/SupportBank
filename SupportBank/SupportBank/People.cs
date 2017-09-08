@@ -8,11 +8,11 @@ namespace SupportBank
 {
     public class People
     {
-        public static List<Person> people = new List<Person>();
+        public List<Person> people = new List<Person>();
         public bool DoesPersonExist(string theName)
         {
             
-            foreach (Person p in People.people)//lambda expression
+            foreach (Person p in people)//lambda expression
             {
                 if (p.name == theName)
                 {

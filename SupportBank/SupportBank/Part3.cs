@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace SupportBank
 {
-    class Program
+    class Part3
     {
-        static void Main(string[] args)
-        {
-            Part2.Run();
-        }
+
     }
 }
